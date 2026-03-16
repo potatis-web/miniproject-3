@@ -1,4 +1,7 @@
 <script>
+  import { error } from "@sveltejs/kit";
+
+
     let points=$state(0)
     let totalpoints=$state(0)
     let clicked=$state(false)
@@ -8,11 +11,41 @@
     let earth="https://upload.wikimedia.org/wikipedia/commons/7/74/Mercator-projection.jpg"
 
     function click(){
-        clicked=!clicked
+      clicked=!clicked
     }
 
+    function generateLatLng() {
+      const baseLat = Math.random();
+      const lat = baseLat > 0.5 ? baseLat * 90 : baseLat * -90;
+      
+      const baseLng = Math.random();
+      const lng = baseLng > 0.5 ? baseLng * 180 : baseLng * -180;
+
+      return {
+        lat: format(lat),
+        lng: format(lng)
+      }
+    }
+    function format(value) {
+      return value.toFixed(4)
+    }
+    async function request() {
+      const request = new Request(`https://api.openstreetcam.org/2.0/photo/?lat=${coords.lat}&lng=${coords.lng}&radius=50`, {
+        method: "GET"
+      })
+      const response = await fetch(request);
+
+      if (response.status != 200) {
+        throw error(response.status, {message: response.statusText});
+      }
+      let data = await response.json();
+      console.log(data)
+      return data;
+    }
     const min=0
     const max=5000 
+
+    let coords = $state(generateLatLng());
 </script>
 
 <main>
@@ -24,6 +57,7 @@
     {#if clicked}
         <h1>im gorking it</h1>
     {/if}
+    <button onclick={request}>Request</button>
 </main>
 
 <style>
