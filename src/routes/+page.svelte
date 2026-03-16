@@ -2,16 +2,16 @@
   import { error } from "@sveltejs/kit";
 
 
-    let points=$state(0)
-    let totalpoints=$state(0)
-    let clicked=$state(false)
+    let points = $state(0);
+    let totalpoints = $state(0);
+    let clicked = $state(false);
 
-    const apiendpoint="http://openstreetcam.org/"
+    const apiendpoint="http://openstreetcam.org/";
 
-    let earth="https://upload.wikimedia.org/wikipedia/commons/7/74/Mercator-projection.jpg"
+    let earth="https://upload.wikimedia.org/wikipedia/commons/7/74/Mercator-projection.jpg";
 
     function click(){
-      clicked=!clicked
+      clicked =! clicked;
     }
 
     function generateLatLng() {
@@ -42,8 +42,15 @@
       console.log(data)
       return data;
     }
-    const min=0
-    const max=5000 
+
+    async function getValidRequest() {
+      let validated = false;
+      while (!validated) {
+        
+      }
+    }
+    const min = 0;
+    const max = 5000;
 
     let coords = $state(generateLatLng());
 </script>
