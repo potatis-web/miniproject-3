@@ -5,7 +5,10 @@
     let points = $state(0);
     let totalpoints = $state(0);
     let clicked = $state(false);
-
+    let timeElapsed = $state(0);
+    let timerId;
+    let timerStart = 0;
+    let coords = $state(generateLatLng())
     const apiendpoint="http://openstreetcam.org/";
 
     let earth="https://upload.wikimedia.org/wikipedia/commons/7/74/Mercator-projection.jpg";
@@ -29,14 +32,38 @@
     function format(value) {
       return value.toFixed(4)
     }
+
+    function startTimer() {
+      stopTimer();
+      timeElapsed = 0;
+      timerStart = performance.now();
+      timerId = setInterval(() => {
+        timeElapsed = (performance.now() - timerStart) / 1000;
+      }, 100);
+    }
+
+    function stopTimer() {
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = undefined;
+      }
+
+      // Keep a final high-resolution elapsed time when stopping.
+      if (timerStart) {
+        timeElapsed = (performance.now() - timerStart) / 1000;
+      }
+    }
+
     async function request() {
-      const request = new Request(`https://api.openstreetcam.org/2.0/photo/?lat=${coords.lat}&lng=${coords.lng}&radius=50`, {
+      const request = new Request(`https://api.openstreetcam.org/2.0/photo/?lat=${coords.lat}&lng=${coords.lng}&radius=500000`, {
         method: "GET"
       })
       const response = await fetch(request);
 
       if (response.status != 200) {
+        stopTimer();
         throw error(response.status, {message: response.statusText});
+        
       }
       let data = await response.json();
       console.log(data)
@@ -44,15 +71,28 @@
     }
 
     async function getValidRequest() {
+      startTimer();
+
       let validated = false;
       while (!validated) {
-        
+        const data = await request();
+
+        if (data.status.apiCode === 601) {
+          console.warn(data.status.apiMessage)
+          coords = generateLatLng()
+          continue;
+        }
+
+        console.log("Success!")
+        validated = true;
       }
+
+      stopTimer();
     }
+
+
     const min = 0;
     const max = 5000;
-
-    let coords = $state(generateLatLng());
 </script>
 
 <main>
@@ -64,7 +104,10 @@
     {#if clicked}
         <h1>im gorking it</h1>
     {/if}
-    <button onclick={request}>Request</button>
+    <p>{timeElapsed.toFixed(2)}s</p>
+    <p>Latitide: {coords.lat}</p>
+    <p>Longitude: {coords.lng}</p>
+    <button onclick={getValidRequest}>Request</button>
 </main>
 
 <style>
